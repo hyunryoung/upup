@@ -1,0 +1,23 @@
+{
+  "accounts": [
+    {
+      "id": "yjyj010524",
+      "pw": "dksdpwl0524."
+    }
+  ],
+  "cafes": [
+    {
+      "url": "https://cafe.naver.com/ttoksun2",
+      "cafe_id": "ttoksun2",
+      "work_board_id": "98",
+      "target_board_id": "1064"
+    },
+    {
+      "url": "https://cafe.naver.com/soho",
+      "cafe_id": "soho",
+      "work_board_id": "416",
+      "target_board_id": "90"
+    }
+  ],
+  "last_saved": "2025-09-11T12:10:11.875930"
+}
