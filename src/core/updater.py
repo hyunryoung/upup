@@ -31,9 +31,16 @@ class Updater(QObject):
             release_info = response.json()
             latest_version = release_info['tag_name']
             
-            if latest_version > self.current_version:
-                self.logger.info(f"새로운 버전 발견: v{self.current_version} → v{latest_version}")
-                self.update_available.emit(latest_version)
+            # 버전 비교 (v 접두사 제거)
+            latest_ver = latest_version.lstrip('v')
+            current_ver = self.current_version.lstrip('v')
+            
+            self.logger.info(f"버전 비교: 현재 v{current_ver}, 최신 v{latest_ver}")
+            
+            if latest_ver != current_ver:
+                self.logger.info(f"새로운 버전 발견: v{current_ver} → v{latest_ver}")
+                # 업데이트 다이얼로그 즉시 표시
+                self._show_update_dialog(release_info)
                 return True, release_info
             
             return False, None
@@ -109,13 +116,8 @@ class Updater(QObject):
             self.update_error.emit(str(e))
             return False
 
-    def perform_update(self):
-        """업데이트 프로세스 실행"""
-        success, release_info = self.check_for_updates()
-        if not success:
-            return
-            
-        # 사용자에게 업데이트 여부 확인
+    def _show_update_dialog(self, release_info):
+        """업데이트 다이얼로그 표시"""
         reply = QMessageBox.question(
             None,
             "업데이트 확인",
@@ -127,23 +129,25 @@ class Updater(QObject):
             QMessageBox.Yes | QMessageBox.No
         )
         
-        if reply == QMessageBox.No:
-            return
-            
-        # 업데이트 파일 다운로드
-        update_file = self.download_update(release_info)
-        if not update_file:
-            return
-            
-        # 현재 프로그램 종료 후 업데이트 설치
-        reply = QMessageBox.information(
-            None,
-            "업데이트 준비 완료",
-            "업데이트가 다운로드되었습니다.\n"
-            "프로그램을 종료하고 업데이트를 설치하시겠습니까?",
-            QMessageBox.Yes | QMessageBox.No
-        )
-        
         if reply == QMessageBox.Yes:
-            self.install_update(update_file)
-            sys.exit(0)  # 프로그램 종료
+            # 업데이트 파일 다운로드
+            update_file = self.download_update(release_info)
+            if update_file:
+                # 업데이트 설치
+                reply2 = QMessageBox.question(
+                    None,
+                    "업데이트 준비 완료",
+                    "업데이트가 다운로드되었습니다.\n"
+                    "프로그램을 종료하고 업데이트를 설치하시겠습니까?",
+                    QMessageBox.Yes | QMessageBox.No
+                )
+                
+                if reply2 == QMessageBox.Yes:
+                    self.install_update(update_file)
+                    sys.exit(0)  # 프로그램 종료
+
+    def perform_update(self):
+        """업데이트 프로세스 실행 (수동 호출용)"""
+        success, release_info = self.check_for_updates()
+        if success:
+            self._show_update_dialog(release_info)

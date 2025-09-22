@@ -47,7 +47,7 @@ def setup_application():
     
     # 애플리케이션 정보 설정
     app.setApplicationName("네이버 카페 자동 등업 프로그램")
-    app.setApplicationVersion("1.0.1")
+    app.setApplicationVersion("1.0.2")
     app.setOrganizationName("CafeLevelUp")
     
     return app
