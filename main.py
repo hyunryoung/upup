@@ -47,7 +47,7 @@ def setup_application():
     
     # 애플리케이션 정보 설정
     app.setApplicationName("네이버 카페 자동 등업 프로그램")
-    app.setApplicationVersion("2025-09-12")
+    app.setApplicationVersion("1.0.0")
     app.setOrganizationName("CafeLevelUp")
     
     return app
@@ -160,7 +160,7 @@ def main():
             return 1
             
         # 업데이트 체크
-        updater = Updater(app.applicationVersion(), "cafe-levelup/cafe-levelup-app")
+        updater = Updater(app.applicationVersion(), "hyunryoung/upup")
         updater.check_for_updates()
         
         # 메인 윈도우 생성 및 표시
