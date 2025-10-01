@@ -1483,6 +1483,16 @@ class MainWindow(QMainWindow):
                 self.check_all_conditions_btn.setEnabled(True)
                 return
             
+            # 프록시 매니저 설정 (등급조건 확인용)
+            proxy_list = self.proxy_widget.get_proxy_list()
+            if proxy_list:
+                from ..core.proxy_manager import ProxyManager
+                self.condition_proxy_manager = ProxyManager(proxy_list)
+                self.log_signal.emit(f"🌐 등급조건 확인용 프록시 매니저 초기화: {len(proxy_list)}개 프록시")
+            else:
+                self.condition_proxy_manager = None
+                self.log_signal.emit("🌐 프록시 없이 직접 연결로 등급조건 확인")
+            
             # 시트별 순차 조회를 위한 큐 생성
             self.sheet_condition_queue = list(self.integrated_data.keys())
             self.current_sheet_checking = 0
@@ -1521,12 +1531,18 @@ class MainWindow(QMainWindow):
             representative_account = sheet_data['accounts'][0]
             sheet_cafes = sheet_data['cafes']
             
+            # 시트별 프록시 매니저 생성 (등급조건 확인용)
+            sheet_proxy_manager = None
+            if self.condition_proxy_manager:
+                sheet_proxy_manager = self._create_sheet_proxy_manager(self.current_sheet_checking, self.total_sheets_to_check)
+            
             from ..workers.levelup_worker import AllLevelupConditionWorker
             
-            # 시트별 등급조건 확인 워커 생성
+            # 시트별 등급조건 확인 워커 생성 (프록시 매니저 포함)
             self.current_condition_worker = AllLevelupConditionWorker(
                 cafes=sheet_cafes,
-                account=representative_account
+                account=representative_account,
+                proxy_manager=sheet_proxy_manager
             )
             
             # 시그널 연결

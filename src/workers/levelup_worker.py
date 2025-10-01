@@ -687,10 +687,11 @@ class AllLevelupConditionWorker(QThread):
     button_signal = pyqtSignal(str, bool, str)
     account_signal = pyqtSignal(str, str)
     
-    def __init__(self, cafes: list, account: Account):
+    def __init__(self, cafes: list, account: Account, proxy_manager=None):
         super().__init__()
         self.cafes = cafes
         self.account = account
+        self.proxy_manager = proxy_manager
         self.driver: Optional[webdriver.Chrome] = None
         self.logger = logging.getLogger(__name__)
     
@@ -699,8 +700,24 @@ class AllLevelupConditionWorker(QThread):
         try:
             self.log_signal.emit("🔄 드라이버 생성 중...")
             
-            # 드라이버 생성
-            self.driver = web_driver_manager.create_driver_with_proxy(purpose="전체 등급조건 확인")
+            # 프록시 할당
+            proxy = None
+            if self.proxy_manager:
+                proxy_info = self.proxy_manager.get_next_proxy()
+                if proxy_info:
+                    proxy = proxy_info['raw_proxy']
+                    proxy_display = proxy.split('@')[-1] if proxy and '@' in proxy else proxy or "없음"
+                    self.log_signal.emit(f"🌐 프록시 할당: {proxy_display} [{proxy_info['index']}/{proxy_info['total']}]")
+                else:
+                    self.log_signal.emit(f"🌐 프록시: 할당 실패")
+            else:
+                self.log_signal.emit(f"🌐 프록시: 사용 안함")
+            
+            # 드라이버 생성 (프록시 적용)
+            self.driver = web_driver_manager.create_driver_with_proxy(
+                proxy=proxy, 
+                purpose="전체 등급조건 확인"
+            )
             self.log_signal.emit("✅ 드라이버 생성 완료")
             
             self.log_signal.emit(f"🔑 로그인 시작: {self.account.id}")
