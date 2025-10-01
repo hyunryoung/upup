@@ -36,7 +36,7 @@ class AboutDialog(QDialog):
         layout.addWidget(title_label)
         
         # 버전
-        version_label = QLabel("버전: v1.0.3 (프록시 배분 개선)")
+        version_label = QLabel("버전: v1.0.4 (로그인 실패 시 계속 진행)")
         version_label.setAlignment(Qt.AlignCenter)
         version_label.setStyleSheet("color: gray; margin-bottom: 20px;")
         layout.addWidget(version_label)

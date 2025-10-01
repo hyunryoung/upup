@@ -870,8 +870,17 @@ class SheetLevelupWorker(QThread):
                 
                 # 계정 변경 시 브라우저 새로 생성
                 if self.current_account_id != account.id:
-                    self._create_new_browser(account)
-                    self.current_account_id = account.id
+                    try:
+                        self._create_new_browser(account)
+                        self.current_account_id = account.id
+                    except Exception as e:
+                        self.log_signal.emit(self.sheet_name, f"❌ {account.id} 계정 건너뜀: {str(e)}")
+                        # 해당 계정의 모든 카페를 실패로 처리
+                        for cafe in self.cafes:
+                            current_task += 1
+                            self.progress_signal.emit(self.sheet_name, current_task, total_tasks)
+                            self.result_signal.emit(self.sheet_name, account.id, cafe.cafe_id, "로그인 실패")
+                        continue  # 다음 계정으로
                 
                 # 해당 계정으로 모든 카페 처리
                 for cafe in self.cafes:
@@ -979,7 +988,14 @@ class SheetLevelupWorker(QThread):
             
         except Exception as e:
             self.log_signal.emit(self.sheet_name, f"❌ 브라우저 생성 실패: {str(e)}")
-            raise
+            # 브라우저 정리
+            if self.driver:
+                try:
+                    self.driver.quit()
+                    self.driver = None
+                except:
+                    pass
+            raise  # 상위에서 처리하도록 예외 전파
     
     def _perform_levelup_work(self, account, cafe, conditions):
         """실제 등업 작업 수행"""
